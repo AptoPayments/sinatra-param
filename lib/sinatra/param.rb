@@ -12,7 +12,7 @@ module Sinatra
     end
 
     def param(name, type, options = {})
-      name = name.to_s
+      name = name.to_sym
 
       return unless params.member?(name) or present?(options[:default]) or options[:required]
 
