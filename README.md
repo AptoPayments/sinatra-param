@@ -11,6 +11,20 @@ This Sinatra extension takes a first step to solving this problem on the develop
 
 > Use `sinatra-param` in combination with [`Rack::PostBodyContentTypeParser` and `Rack::NestedParams`](https://github.com/rack/rack-contrib) to automatically parameterize JSON `POST` bodies and nested parameters.
 
+## Install
+
+You can install `sinatra-param` from the command line with the following:
+
+```bash
+$ gem install sinatra-param
+```
+
+Alternatively, you can specify `sinatra-param` as a dependency in your `Gemfile` and run `$ bundle install`:
+
+```ruby
+gem "sinatra-param", require: "sinatra/param"
+```
+
 ## Example
 
 ``` ruby
@@ -33,7 +47,9 @@ class App < Sinatra::Base
     param :categories,  Array
     param :sort,        String, default: "title"
     param :order,       String, in: ["ASC", "DESC"], transform: :upcase, default: "ASC"
-    param :price,       String, format: "[<\=>]\s*\$\d+"
+    param :price,       String, format: /[<\=>]\s*\$\d+/
+
+    one_of :q, :categories
 
     {...}.to_json
   end
@@ -79,6 +95,29 @@ param :order, String, in: ["ASC", "DESC"], transform: :upcase, default: "ASC"
 param :offset, Integer, min: 0, transform: lambda {|n| n - (n % 10)}
 ```
 
+## One Of
+
+Using `one_of`, routes can specify two or more parameters to be mutually exclusive, and fail if _more than one_ of those parameters is provided:
+
+```ruby
+param :a, String
+param :b, String
+param :c, String
+
+one_of :a, :b, :c
+```
+
+## Any Of
+
+Using `any_of`, a route can specify that _at least one of_ two or more parameters are required, and fail if _none of them_ are provided:
+
+```ruby
+param :x, String
+param :y, String
+
+any_of :x, :y
+```
+
 ### Exceptions
 
 By default, when a parameter precondition fails, `Sinatra::Param` will `halt 400` with an error message:
@@ -106,6 +145,8 @@ Custom exception handling can also be enabled on an individual parameter basis, 
 
 ```ruby
 param :order, String, in: ["ASC", "DESC"], raise: true
+
+one_of :q, :categories, raise: true
 ```
 
 ### Array of validation errors
@@ -136,12 +177,8 @@ end
 
 ## Contact
 
-Mattt Thompson
-
-- http://github.com/mattt
-- http://twitter.com/mattt
-- m@mattt.me
+Mattt Thompson ([@mattt](http://twitter.com/mattt))
 
 ## License
 
-sinatra-param is available under the MIT license. See the LICENSE file for more info.
+sinatra-param is released under an MIT license. See LICENSE for more information.

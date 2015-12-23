@@ -14,7 +14,7 @@ module Sinatra
     def param(name, type, options = {})
       name = name.to_sym
 
-      return unless params.member?(name) or present?(options[:default]) or options[:required]
+      return unless params.member?(name) or options[:default] or options[:required]
 
       begin
         params[name] = coerce(params[name], type, options)
@@ -31,7 +31,8 @@ module Sinatra
           return
         end
 
-        error = "Invalid Parameter: #{name}"
+        error = exception.to_s
+
         if content_type and content_type.match(mime_type(:json))
           error = {message: error, errors: {name => exception.message}}.to_json
         end
@@ -40,20 +41,49 @@ module Sinatra
       end
     end
 
-    def one_of(*names)
-      count = 0
-      names.each do |name|
-        if params[name] and present?(params[name])
-          count += 1
-          next unless count > 1
+    def one_of(*args)
+      options = args.last.is_a?(Hash) ? args.pop : {}
+      names = args.collect(&:to_s)
 
-          error = "Parameters #{names.join(', ')} are mutually exclusive"
-          if content_type and content_type.match(mime_type(:json))
-            error = {message: error}.to_json
-          end
+      return unless names.length >= 2
 
-          halt 400, error
+      begin
+        validate_one_of!(params, names, options)
+      rescue InvalidParameterError => exception
+        if options[:raise] or (settings.raise_sinatra_param_exceptions rescue false)
+          exception.param, exception.options = names, options
+          raise exception
         end
+
+        error = "Invalid parameters [#{names.join(', ')}]"
+        if content_type and content_type.match(mime_type(:json))
+          error = {message: error, errors: {names => exception.message}}.to_json
+        end
+
+        halt 400, error
+      end
+    end
+
+    def any_of(*args)
+      options = args.last.is_a?(Hash) ? args.pop : {}
+      names = args.collect(&:to_s)
+
+      return unless names.length >= 2
+
+      begin
+        validate_any_of!(params, names, options)
+      rescue InvalidParameterError => exception
+        if options[:raise] or (settings.raise_sinatra_param_exceptions rescue false)
+          exception.param, exception.options = names, options
+          raise exception
+        end
+
+        error = "Invalid parameters [#{names.join(', ')}]"
+        if content_type and content_type.match(mime_type(:json))
+          error = {message: error, errors: {names => exception.message}}.to_json
+        end
+
+        halt 400, error
       end
     end
 
@@ -85,13 +115,13 @@ module Sinatra
           raise InvalidParameterError, "Parameter is required" if value && param.nil?
         when :blank
           raise InvalidParameterError, "Parameter cannot be blank" if !value && case param
-              when String
-                !(/\S/ === param)
-              when Array, Hash
-                param.empty?
-              else
-                param.nil?
-            end
+          when String
+            !(/\S/ === param)
+          when Array, Hash
+            param.empty?
+          else
+            param.nil?
+          end
         when :format
           raise InvalidParameterError, "Parameter must be a string if using the format validation" unless param.kind_of?(String)
           raise InvalidParameterError, "Parameter must match format #{value}" unless param =~ value
@@ -99,11 +129,11 @@ module Sinatra
           raise InvalidParameterError, "Parameter must be #{value}" unless param === value
         when :in, :within, :range
           raise InvalidParameterError, "Parameter must be within #{value}" unless param.nil? || case value
-              when Range
-                value.include?(param)
-              else
-                Array(value).include?(param)
-              end
+          when Range
+            value.include?(param)
+          else
+            Array(value).include?(param)
+          end
         when :min
           raise InvalidParameterError, "Parameter cannot be less than #{value}" unless param.nil? || value <= param
         when :max
@@ -114,6 +144,14 @@ module Sinatra
           raise InvalidParameterError, "Parameter cannot have length greater than #{value}" unless param.nil? || value >= param.length
         end
       end
+    end
+
+    def validate_one_of!(params, names, options)
+      raise InvalidParameterError, "Only one of [#{names.join(', ')}] is allowed" if names.count{|name| present?(params[name])} > 1
+    end
+
+    def validate_any_of!(params, names, options)
+      raise InvalidParameterError, "One of parameters [#{names.join(', ')}] is required" if names.count{|name| present?(params[name])} < 1
     end
 
     # ActiveSupport #present? and #blank? without patching Object
