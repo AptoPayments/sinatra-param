@@ -80,6 +80,11 @@ class App < Sinatra::Base
     params.to_json
   end
 
+  get '/default/hash' do
+    param :attributes, Hash, default: {}
+    params.to_json
+  end
+
   get '/default/proc' do
     param :year, Integer, default: proc { 2014 }
     params.to_json
@@ -180,19 +185,55 @@ class App < Sinatra::Base
     params.to_json
   end
 
-  get '/choice' do
+  get '/one_of/1' do
     param :a, String
     param :b, String
     param :c, String
 
-    one_of(:a, :b, :c)
+    one_of :a
 
     {
       message: 'OK'
     }.to_json
   end
 
-  get '/raise' do
+  get '/one_of/2' do
+    param :a, String
+    param :b, String
+    param :c, String
+
+    one_of :a, :b
+
+    {
+      message: 'OK'
+    }.to_json
+  end
+
+  get '/one_of/3' do
+    param :a, String
+    param :b, String
+    param :c, String
+
+    one_of :a, :b, :c
+
+    {
+      message: 'OK'
+    }.to_json
+  end
+
+  get '/any_of' do
+    param :a, String
+    param :b, String
+    param :c, String
+
+    any_of :a, :b, :c
+
+    {
+      message: 'OK'
+    }.to_json
+  end
+
+  get '/raise/validation/required' do
     param :arg, String, required: true, raise: true
     params.to_json
   end
@@ -202,5 +243,29 @@ class App < Sinatra::Base
     param :b, String, required: true
 
     env[:sinatra_param_errors].to_json
+  end
+
+  get '/raise/one_of/3' do
+    param :a, String
+    param :b, String
+    param :c, String
+
+    one_of :a, :b, :c, raise: true
+
+    {
+      message: 'OK'
+    }.to_json
+  end
+
+  get '/raise/any_of' do
+    param :a, String
+    param :b, String
+    param :c, String
+
+    any_of :a, :b, :c, raise: true
+
+    {
+      message: 'OK'
+    }.to_json
   end
 end
