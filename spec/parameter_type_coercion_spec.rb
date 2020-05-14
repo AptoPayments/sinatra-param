@@ -51,9 +51,9 @@ describe 'Parameter Types' do
     end
 
     it 'returns 400 on requests when time is invalid' do
-      get('/coerce/time', arg: 'noon') do |response|
+      get('/coerce/time', arg: '123abc') do |response|
         expect(response.status).to eql 400
-        expect(JSON.parse(response.body)['message']).to eq("'noon' is not a valid Time")
+        expect(JSON.parse(response.body)['message']).to eq("'123abc' is not a valid Time")
       end
     end
   end
@@ -166,36 +166,6 @@ describe 'Parameter Types' do
           expect(JSON.parse(response.body)['arg']).to be false
           expect(JSON.parse(response.body)['arg']).to_not be_nil
         end
-      end
-    end
-
-    it 'coerces default booleans to true when default is true and its not provided' do
-      get('/default/boolean/true') do |response|
-        expect(response.status).to eql 200
-        expect(JSON.parse(response.body)['arg']).to be true
-        expect(JSON.parse(response.body)['arg']).to_not be_nil
-      end
-    end
-
-    it 'coerces default booleans to false when default is false and its not provided' do
-      get('/default/boolean/false') do |response|
-        expect(response.status).to eql 200
-        expect(JSON.parse(response.body)['arg']).to be false
-        expect(JSON.parse(response.body)['arg']).to_not be_nil
-      end
-    end
-
-    it 'returns 400 on requests when true is not a truthy value' do
-      get('/default/boolean/true', arg: 'abc') do |response|
-        expect(response.status).to eql 400
-        expect(JSON.parse(response.body)['message']).to eq("'abc' is not a valid boolean")
-      end
-    end
-
-    it 'returns 400 on requests when false is not a falsey value' do
-      get('/default/boolean/false', arg: 'abc') do |response|
-        expect(response.status).to eql 400
-        expect(JSON.parse(response.body)['message']).to eq("'abc' is not a valid boolean")
       end
     end
   end
