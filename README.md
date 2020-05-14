@@ -1,5 +1,4 @@
 # sinatra-param
-
 _Parameter Validation & Type Coercion for Sinatra_
 
 REST conventions take the guesswork out of designing and consuming web APIs. Simply `GET`, `POST`, `PATCH`, or `DELETE` resource endpoints, and you get what you'd expect.
@@ -28,7 +27,7 @@ gem "sinatra-param", require: "sinatra/param"
 
 ## Example
 
-```ruby
+``` ruby
 require 'sinatra/base'
 require 'sinatra/param'
 require 'json'
@@ -61,40 +60,28 @@ end
 
 By declaring parameter types, incoming parameters will automatically be transformed into an object of that type. For instance, if a param is `Boolean`, values of `'1'`, `'true'`, `'t'`, `'yes'`, and `'y'` will be automatically transformed into `true`.
 
-* `String`
-* `Integer`
-* `Float`
-* `Boolean` _("1/0", "true/false", "t/f", "yes/no", "y/n")_
-* `Array` _("1,2,3,4,5")_
-* `Hash` _(key1:value1,key2:value2)_
-* `Date`, `Time`, & `DateTime`
+- `String`
+- `Integer`
+- `Float`
+- `Boolean` _("1/0", "true/false", "t/f", "yes/no", "y/n")_
+- `Array` _("1,2,3,4,5")_
+- `Hash` _(key1:value1,key2:value2)_
+- `Date`, `Time`, & `DateTime`
 
 ### Validations
 
 Encapsulate business logic in a consistent way with validations. If a parameter does not satisfy a particular condition, a `400` error is returned with a message explaining the failure.
 
-* `required`
-* `blank`
-* `is`
-* `in`, `within`, `range`
-* `min` / `max`
-* `min_length` / `max_length`
-* `format`
-
-### Custom Error Messages
-
-Passing a `message` option allows you to customize the message
-for any validation error that occurs.
-
-```ruby
-param :spelling,
-      format: /\b(?![a-z]*cie)[a-z]*(?:cei|ie)[a-z]*/i,
-      message: "'i' before 'e', except after 'c'"
-```
+- `required`
+- `blank`
+- `is`
+- `in`, `within`, `range`
+- `min` / `max`
+- `format`
 
 ### Defaults and Transformations
 
-Passing a `default` option will provide a default value for a parameter if none is passed. A `default` can defined as either a default or as a `Proc`:
+Passing a `default` option will provide a default value for a parameter if none is passed.  A `default` can defined as either a default or as a `Proc`:
 
 ```ruby
 param :attribution, String, default: "©"
@@ -131,27 +118,16 @@ param :y, String
 any_of :x, :y
 ```
 
-## All Or None Of
-
-Using `all_or_none_of`, a router can specify that _all_ or _none_ of a set of parameters are required, and fail if _some_ are provided:
-
-```ruby
-param :x, String
-param :y, String
-
-all_or_none_of :x,:y
-```
-
 ### Exceptions
 
 By default, when a parameter precondition fails, `Sinatra::Param` will `halt 400` with an error message:
 
 ```json
 {
-  "message": "Parameter must be within [\"ASC\", \"DESC\"]",
-  "errors": {
-    "order": "Parameter must be within [\"ASC\", \"DESC\"]"
-  }
+    "message": "Invalid parameter, order",
+    "errors": {
+        "order": "Param must be within [\"ASC\", \"DESC\"]"
+    }
 }
 ```
 
@@ -161,7 +137,7 @@ To change this, you can set `:raise_sinatra_param_exceptions` to `true`, and int
 set :raise_sinatra_param_exceptions, true
 
 error Sinatra::Param::InvalidParameterError do
-    { error: "#{env['sinatra.error'].param} is invalid" }.to_json
+    {error: "#{env['sinatra.error'].param} is invalid"}.to_json
 end
 ```
 
@@ -201,7 +177,7 @@ end
 
 ## Contact
 
-Mattt ([@mattt](http://twitter.com/mattt))
+Mattt Thompson ([@mattt](http://twitter.com/mattt))
 
 ## License
 

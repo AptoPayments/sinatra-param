@@ -268,25 +268,4 @@ class App < Sinatra::Base
       message: 'OK'
     }.to_json
   end
-
-  get '/xml' do
-    content_type :xml
-    param :a, Integer, within: 1..10, required: true
-  end
-
-  get '/custommessage' do
-    param :a, Integer, within: 1..10, required: true, message: "'a' must be less than 10"
-  end
-
-  get '/all_or_none_of' do
-    param :a, String
-    param :b, String
-    param :c, String
-
-    all_or_none_of :a, :b, :c
-
-    {
-      message: 'OK'
-    }.to_json
-  end
 end
